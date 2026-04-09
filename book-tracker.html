@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>מעקב קריאה</title>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300;400;500;700;900&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1208;
+    --paper: #f5edd8;
+    --paper-dark: #ede0c4;
+    --amber: #c8842a;
+    --amber-light: #e8a84a;
+    --amber-dark: #8a5a18;
+    --sage: #6b7c5a;
+    --cream: #faf4e8;
+    --shadow: rgba(30,15,0,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Frank Ruhl Libre', serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0 0 80px 0;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(200,132,42,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 90%, rgba(107,124,90,0.07) 0%, transparent 60%);
+  }
+
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 20px 24px 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(255,255,255,0.02) 3px,
+      rgba(255,255,255,0.02) 4px
+    );
+  }
+
+  .header-icon {
+    font-size: 2rem;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  header p {
+    font-size: 0.8rem;
+    opacity: 0.6;
+    font-weight: 300;
+    margin-top: 2px;
+  }
+
+  .tabs {
+    display: flex;
+    background: var(--paper-dark);
+    border-bottom: 2px solid var(--amber);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--ink);
+    opacity: 0.5;
+    transition: all 0.2s;
+    font-family: 'Frank Ruhl Libre', serif;
+  }
+
+  .tab.active {
+    opacity: 1;
+    background: var(--paper);
+    color: var(--amber-dark);
+    border-top: 2px solid var(--amber);
+    margin-top: -2px;
+  }
+
+  .panel { display: none; padding: 20px 16px; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(200,132,42,0.2);
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  .card-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--amber-dark);
+    margin-bottom: 14px;
+    font-weight: 700;
+  }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--amber-dark);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+
+  input[type="text"],
+  input[type="number"] {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid rgba(200,132,42,0.3);
+    border-radius: 8px;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 1rem;
+    font-family: 'Frank Ruhl Libre', serif;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--amber);
+  }
+
+  input[type="number"] { direction: ltr; text-align: right; }
+
+  .btn {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: 'Frank Ruhl Libre', serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s;
+    letter-spacing: 0.03em;
+  }
+
+  .btn-primary {
+    background: var(--amber);
+    color: white;
+    box-shadow: 0 3px 10px rgba(200,132,42,0.35);
+  }
+
+  .btn-primary:active { transform: scale(0.98); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--amber-dark);
+    border: 1.5px solid var(--amber);
+    margin-top: 8px;
+  }
+
+  .btn-danger {
+    background: transparent;
+    color: #c0392b;
+    border: 1.5px solid #c0392b;
+    font-size: 0.85rem;
+    padding: 9px;
+    margin-top: 8px;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-box {
+    background: var(--cream);
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+    border: 1px solid rgba(200,132,42,0.2);
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  .stat-box.highlight {
+    background: var(--ink);
+    color: var(--paper);
+    grid-column: 1 / -1;
+    border-color: transparent;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--amber);
+  }
+
+  .stat-box.highlight .stat-value {
+    font-size: 2.8rem;
+    color: var(--amber-light);
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    opacity: 0.65;
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  .stat-box.highlight .stat-label { opacity: 0.7; }
+
+  .progress-wrap {
+    background: var(--paper-dark);
+    border-radius: 100px;
+    height: 10px;
+    overflow: hidden;
+    margin: 10px 0 6px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber), var(--amber-light));
+    border-radius: 100px;
+    transition: width 0.6s ease;
+    min-width: 4px;
+  }
+
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--amber-dark);
+    opacity: 0.8;
+  }
+
+  .log-entry {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(200,132,42,0.2);
+    gap: 10px;
+  }
+
+  .log-entry:last-child { border-bottom: none; }
+
+  .log-date {
+    font-size: 0.72rem;
+    color: var(--amber-dark);
+    min-width: 60px;
+    opacity: 0.7;
+  }
+
+  .log-pages {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--amber-dark);
+    min-width: 30px;
+    text-align: center;
+  }
+
+  .log-desc {
+    font-size: 0.78rem;
+    opacity: 0.7;
+    flex: 1;
+  }
+
+  .log-delete {
+    background: none;
+    border: none;
+    color: #c0392b;
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0.4;
+    padding: 4px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px 20px;
+    opacity: 0.5;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 8px; }
+
+  .inline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .section-divider {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--amber-dark);
+    opacity: 0.5;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin: 16px 0 12px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    z-index: 999;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .pace-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed rgba(200,132,42,0.15);
+  }
+
+  .pace-row:last-child { border-bottom: none; }
+
+  .pace-label { font-size: 0.82rem; opacity: 0.75; }
+  .pace-value { font-size: 1rem; font-weight: 700; color: var(--amber-dark); }
+
+  .badge {
+    display: inline-block;
+    background: var(--amber);
+    color: white;
+    border-radius: 100px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-right: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="header-icon">📖</span>
+  <h1>מעקב קריאה</h1>
+  <p>כמה ימים נשארו לסיים את הספר?</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('today')">היום</button>
+  <button class="tab" onclick="switchTab('stats')">סטטיסטיקה</button>
+  <button class="tab" onclick="switchTab('log')">יומן</button>
+  <button class="tab" onclick="switchTab('settings')">הגדרות</button>
+</div>
+
+<div id="tab-today" class="panel active">
+  <div id="no-book-msg" class="card" style="display:none">
+    <div class="empty-state">
+      <div class="icon">📚</div>
+      <div>הגדר קודם את הספר שלך בלשונית <strong>הגדרות</strong></div>
+    </div>
+  </div>
+
+  <div id="today-form">
+    <div class="card">
+      <div class="card-title">📅 רישום קריאת היום</div>
+      <label>התחלתי את היום בעמוד</label>
+      <input type="number" id="start-page" placeholder="למשל: 84" min="1">
+      <label>כרגע אני בעמוד</label>
+      <input type="number" id="current-page" placeholder="למשל: 95" min="1">
+      <button class="btn btn-primary" onclick="logToday()">✓ רשום וחשב</button>
+    </div>
+
+    <div id="today-result" style="display:none">
+      <div class="stat-box highlight" style="margin-bottom:10px; border-radius:12px; padding:20px; text-align:center;">
+        <div class="stat-label" style="margin-bottom:6px;">בקצב של היום - נשארו עוד</div>
+        <div class="stat-value" id="days-today-val">-</div>
+        <div class="stat-label" style="margin-top:4px;">ימים לסיום הספר</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-value" id="pages-today-val">-</div>
+          <div class="stat-label">עמודים<br>קראת היום</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="pages-left-val">-</div>
+          <div class="stat-label">עמודים<br>נשארו</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 התקדמות כוללת</div>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-label">
+          <span id="progress-pct">0%</span>
+          <span id="progress-pages"></span>
+        </div>
+      </div>
+
+      <div id="avg-section" style="display:none" class="card">
+        <div class="card-title">📈 על סמך ממוצע ימים קודמים</div>
+        <div class="pace-row">
+          <span class="pace-label">ממוצע עמודים ליום</span>
+          <span class="pace-value" id="avg-pages-val">-</span>
+        </div>
+        <div class="pace-row">
+          <span class="pace-label">ימים נשארו (ממוצע)</span>
+          <span class="pace-value" id="days-avg-val">-</span>
+        </div>
+        <div class="pace-row">
+          <span class="pace-label">תאריך סיום משוער</span>
+          <span class="pace-value" id="finish-date-val">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-stats" class="panel">
+  <div id="stats-empty" class="card" style="display:none">
+    <div class="empty-state">
+      <div class="icon">📊</div>
+      <div>רשום קריאה לפחות יום אחד כדי לראות סטטיסטיקות</div>
+    </div>
+  </div>
+  <div id="stats-content">
+    <div class="stat-grid">
+      <div class="stat-box highlight" style="border-radius:12px;">
+        <div class="stat-label" style="margin-bottom:6px;">ממוצע ימים לסיום</div>
+        <div class="stat-value" id="s-days-avg">-</div>
+        <div class="stat-label">ימים</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-value" id="s-avg-pages">-</div>
+        <div class="stat-label">ממוצע עמודים<br>ליום</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="s-total-days">-</div>
+        <div class="stat-label">ימים<br>נרשמו</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="s-max-day">-</div>
+        <div class="stat-label">שיא יומי<br>(עמודים)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-value" id="s-total-read">-</div>
+        <div class="stat-label">סה"כ עמודים<br>נקראו</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 תאריך סיום משוער</div>
+      <div class="pace-row">
+        <span class="pace-label">לפי ממוצע כל הימים</span>
+        <span class="pace-value" id="s-finish-avg">-</span>
+      </div>
+      <div class="pace-row">
+        <span class="pace-label">לפי שיא (מהיר)</span>
+        <span class="pace-value" id="s-finish-fast">-</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📖 התקדמות הספר</div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="s-progress-bar"></div>
+      </div>
+      <div class="progress-label">
+        <span id="s-progress-pct">0%</span>
+        <span id="s-progress-pages"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-log" class="panel">
+  <div id="log-empty" class="card">
+    <div class="empty-state">
+      <div class="icon">📋</div>
+      <div>עדיין אין רשומות קריאה.<br>רשום את קריאת היום!</div>
+    </div>
+  </div>
+  <div id="log-list" class="card" style="display:none">
+    <div class="card-title">📋 יומן קריאה</div>
+    <div id="log-entries"></div>
+    <button class="btn btn-danger" onclick="clearAllLogs()">🗑 מחק את כל היומן</button>
+  </div>
+</div>
+
+<div id="tab-settings" class="panel">
+  <div class="card">
+    <div class="card-title">📚 פרטי הספר</div>
+    <label>שם הספר</label>
+    <input type="text" id="book-title" placeholder="שם הספר">
+    <label>מספר עמודים בספר</label>
+    <input type="number" id="total-pages" placeholder="למשל: 481" min="1">
+    <label>העמוד הנוכחי שלי (כרגע)</label>
+    <input type="number" id="current-page-settings" placeholder="למשל: 95" min="0">
+    <button class="btn btn-primary" onclick="saveBook()">💾 שמור ספר</button>
+  </div>
+  <div id="book-saved-info" class="card" style="display:none">
+    <div class="card-title">📖 הספר הנוכחי</div>
+    <div id="book-info-text" style="font-size:0.9rem; line-height:1.7;"></div>
+    <button class="btn btn-secondary" onclick="resetBook()">🔄 החלף ספר</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DB_KEY = 'booktracker_v2';
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || { book: null, logs: [] }; }
+  catch(e) { return { book: null, logs: [] }; }
+}
+
+function saveData(data) {
+  localStorage.setItem(DB_KEY, JSON.stringify(data));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const names = ['today','stats','log','settings'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'stats') renderStats();
+  if (name === 'log') renderLog();
+  if (name === 'settings') renderSettings();
+  if (name === 'today') renderTodayForm();
+}
+
+function renderTodayForm() {
+  const data = loadData();
+  const noBook = document.getElementById('no-book-msg');
+  const form = document.getElementById('today-form');
+  if (!data.book) {
+    noBook.style.display = '';
+    form.style.display = 'none';
+  } else {
+    noBook.style.display = 'none';
+    form.style.display = '';
+  }
+}
+
+function logToday() {
+  const data = loadData();
+  if (!data.book) { showToast('הגדר קודם את הספר בהגדרות'); return; }
+
+  const startP = parseInt(document.getElementById('start-page').value);
+  const curP = parseInt(document.getElementById('current-page').value);
+
+  if (!startP || !curP || isNaN(startP) || isNaN(curP)) {
+    showToast('נא להזין עמוד התחלה ועמוד נוכחי');
+    return;
+  }
+  if (curP <= startP) { showToast('העמוד הנוכחי חייב להיות גדול מהעמוד שהתחלת בו'); return; }
+  if (curP > data.book.total) { showToast('העמוד גדול ממספר עמודי הספר!'); return; }
+
+  const pagesRead = curP - startP;
+  const pagesLeft = data.book.total - curP;
+  const daysToday = pagesLeft / pagesRead;
+
+  // Update current page in book
+  data.book.currentPage = curP;
+
+  // Log this session
+  const today = new Date().toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit', year:'2-digit' });
+  // Check if today already logged - update it
+  const todayIdx = data.logs.findIndex(l => l.date === today);
+  const entry = { date: today, start: startP, end: curP, pages: pagesRead };
+  if (todayIdx >= 0) data.logs[todayIdx] = entry;
+  else data.logs.push(entry);
+
+  saveData(data);
+
+  // Show results
+  document.getElementById('today-result').style.display = '';
+  document.getElementById('pages-today-val').textContent = pagesRead;
+  document.getElementById('pages-left-val').textContent = pagesLeft;
+  document.getElementById('days-today-val').textContent = Math.ceil(daysToday);
+
+  const pct = Math.round((curP / data.book.total) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-pages').textContent = `עמוד ${curP} מתוך ${data.book.total}`;
+
+  // Average section
+  if (data.logs.length > 1) {
+    const avgSection = document.getElementById('avg-section');
+    avgSection.style.display = '';
+    const totalPages = data.logs.reduce((s,l) => s + l.pages, 0);
+    const avgPerDay = totalPages / data.logs.length;
+    const daysAvg = pagesLeft / avgPerDay;
+    document.getElementById('avg-pages-val').textContent = Math.round(avgPerDay);
+    document.getElementById('days-avg-val').textContent = Math.ceil(daysAvg);
+    const finishDate = new Date();
+    finishDate.setDate(finishDate.getDate() + Math.ceil(daysAvg));
+    document.getElementById('finish-date-val').textContent = finishDate.toLocaleDateString('he-IL', { day:'numeric', month:'long' });
+  }
+
+  showToast('✓ נרשם! ' + pagesRead + ' עמודים היום');
+}
+
+function renderStats() {
+  const data = loadData();
+  const empty = document.getElementById('stats-empty');
+  const content = document.getElementById('stats-content');
+
+  if (!data.book || data.logs.length === 0) {
+    empty.style.display = '';
+    content.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  content.style.display = '';
+
+  const curPage = data.book.currentPage || 0;
+  const pagesLeft = data.book.total - curPage;
+  const totalRead = data.logs.reduce((s,l) => s + l.pages, 0);
+  const avgPerDay = totalRead / data.logs.length;
+  const maxDay = Math.max(...data.logs.map(l => l.pages));
+  const daysAvg = pagesLeft / avgPerDay;
+
+  document.getElementById('s-avg-pages').textContent = Math.round(avgPerDay);
+  document.getElementById('s-total-days').textContent = data.logs.length;
+  document.getElementById('s-max-day').textContent = maxDay;
+  document.getElementById('s-total-read').textContent = totalRead;
+  document.getElementById('s-days-avg').textContent = Math.ceil(daysAvg);
+
+  const finAvg = new Date(); finAvg.setDate(finAvg.getDate() + Math.ceil(daysAvg));
+  document.getElementById('s-finish-avg').textContent = finAvg.toLocaleDateString('he-IL', { day:'numeric', month:'long' });
+
+  const daysMax = pagesLeft / maxDay;
+  const finFast = new Date(); finFast.setDate(finFast.getDate() + Math.ceil(daysMax));
+  document.getElementById('s-finish-fast').textContent = finFast.toLocaleDateString('he-IL', { day:'numeric', month:'long' });
+
+  const pct = Math.round((curPage / data.book.total) * 100);
+  document.getElementById('s-progress-bar').style.width = pct + '%';
+  document.getElementById('s-progress-pct').textContent = pct + '%';
+  document.getElementById('s-progress-pages').textContent = `עמוד ${curPage} מתוך ${data.book.total}`;
+}
+
+function renderLog() {
+  const data = loadData();
+  const empty = document.getElementById('log-empty');
+  const list = document.getElementById('log-list');
+  const entries = document.getElementById('log-entries');
+
+  if (data.logs.length === 0) {
+    empty.style.display = '';
+    list.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  list.style.display = '';
+
+  entries.innerHTML = [...data.logs].reverse().map((l, ri) => {
+    const i = data.logs.length - 1 - ri;
+    return `<div class="log-entry">
+      <span class="log-date">${l.date}</span>
+      <span class="log-pages">${l.pages}</span>
+      <span class="log-desc">עמודים (${l.start}-${l.end})</span>
+      <button class="log-delete" onclick="deleteLog(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteLog(idx) {
+  if (!confirm('למחוק רשומה זו?')) return;
+  const data = loadData();
+  data.logs.splice(idx, 1);
+  saveData(data);
+  renderLog();
+  showToast('נמחק');
+}
+
+function clearAllLogs() {
+  if (!confirm('למחוק את כל יומן הקריאה?')) return;
+  const data = loadData();
+  data.logs = [];
+  saveData(data);
+  renderLog();
+  showToast('היומן נמחק');
+}
+
+function renderSettings() {
+  const data = loadData();
+  const info = document.getElementById('book-saved-info');
+  if (data.book) {
+    info.style.display = '';
+    const pct = Math.round(((data.book.currentPage || 0) / data.book.total) * 100);
+    document.getElementById('book-info-text').innerHTML =
+      `<strong>${data.book.title || 'ספר ללא שם'}</strong><br>` +
+      `סה"כ עמודים: ${data.book.total}<br>` +
+      `עמוד נוכחי: ${data.book.currentPage || 0}<br>` +
+      `התקדמות: ${pct}%`;
+    document.getElementById('book-title').value = data.book.title || '';
+    document.getElementById('total-pages').value = data.book.total || '';
+    document.getElementById('current-page-settings').value = data.book.currentPage || '';
+  } else {
+    info.style.display = 'none';
+  }
+}
+
+function saveBook() {
+  const title = document.getElementById('book-title').value.trim();
+  const total = parseInt(document.getElementById('total-pages').value);
+  const cur = parseInt(document.getElementById('current-page-settings').value) || 0;
+
+  if (!total || isNaN(total) || total < 1) { showToast('נא להזין מספר עמודים תקין'); return; }
+
+  const data = loadData();
+  data.book = { title, total, currentPage: cur };
+  saveData(data);
+  renderSettings();
+  renderTodayForm();
+  showToast('✓ הספר נשמר!');
+}
+
+function resetBook() {
+  if (!confirm('להחליף ספר? יומן הקריאה הנוכחי יימחק.')) return;
+  saveData({ book: null, logs: [] });
+  document.getElementById('book-title').value = '';
+  document.getElementById('total-pages').value = '';
+  document.getElementById('current-page-settings').value = '';
+  document.getElementById('book-saved-info').style.display = 'none';
+  document.getElementById('today-result').style.display = 'none';
+  renderTodayForm();
+  showToast('ספר אופס. הגדר ספר חדש.');
+}
+
+// Init
+renderTodayForm();
+</script>
+</body>
+</html>
